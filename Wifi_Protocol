@@ -1,0 +1,123 @@
+#define BLYNK_TEMPLATE_ID "TMPL3ATazCJeU"
+#define BLYNK_TEMPLATE_NAME "Industrial System"
+#define BLYNK_AUTH_TOKEN "fQ3trYUAtq5aGfkoAxuOJj0MFRLBvDmu"
+
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+
+#include "DHT.h"
+
+#define MQ135 D0  //for alchocol
+#define MQ9 D1    //for carbon monooxide
+#define MQ6 D2    //for lpg
+#define DHTPIN D3
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+#define Voltage D9
+#define Vibration_bot D4
+#define Vibration_arm D5
+#define CURRENT_SENSOR_PIN D10
+#define ACS712_SENSITIVITY 100
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "Dhanu@";
+char pass[] = "Dhanu@@2004";
+
+float MQ135val;
+float MQ9val;
+float MQ6val;
+float h;
+float t;
+float bot_val;
+float arm_val;
+
+float adc_voltage = 0.0;  //Analog readings
+float in_voltage = 0.0;   //Input voltage
+float R1 = 30000.0;
+float R2 = 7500.0;        //voltage divider using R1 & R2
+float ref_voltage = 3.3;  //voltage reference
+int adc_value = 0;
+
+int Acs_val;
+float voltage;
+float current;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(MQ135, INPUT);
+  pinMode(MQ9, INPUT);
+  pinMode(MQ6, INPUT);
+  pinMode(Voltage, INPUT);
+  pinMode(Vibration_bot, INPUT);
+  pinMode(Vibration_arm, INPUT);
+  pinMode(CURRENT_SENSOR_PIN, INPUT);
+  dht.begin();
+
+  Blynk.begin(auth, ssid, pass);
+}
+
+void loop() {
+  // Blynk.run();
+
+  MQ135val = analogRead(MQ135);
+  //  float alcohol = MQ135val / 4095.0 * 3.3;
+  MQ135val = map(MQ135val, 0, 4095, 0, 100);
+  Serial.print("Alcohol: ");
+  Serial.println(MQ135val);
+  Blynk.virtualWrite(V0, MQ135val);
+
+
+  MQ9val = analogRead(MQ9);
+  MQ9val = map(MQ9val, 0, 4095, 0, 100);
+  Serial.print("Carbon monoxide: ");
+  Serial.println(MQ9val);
+  Blynk.virtualWrite(V2, MQ9val);
+
+  MQ6val = analogRead(MQ6);
+  MQ6val = map(MQ6val, 0, 4095, 0, 100);
+  Serial.print("LPG: ");
+  Serial.println(MQ6val);
+  Blynk.virtualWrite(V1, MQ6val);
+
+  h = dht.readHumidity();
+  Serial.print("Humidity: ");
+  Serial.print(h);
+  Serial.println("%");
+  Blynk.virtualWrite(V3, h);
+
+  t = dht.readTemperature();
+  Serial.print("Temperature: ");
+  Serial.print(t);
+  Serial.println("°C");
+  Blynk.virtualWrite(V4, t);
+
+  bot_val = analogRead(Vibration_bot);
+  bot_val = map(bot_val, 0, 4095, 0, 100);
+  Serial.print("Vibration_bot: ");
+  Serial.println(bot_val);
+  Blynk.virtualWrite(V5, bot_val);
+
+  arm_val = analogRead(Vibration_arm);
+  arm_val = map(arm_val, 0, 4095, 0, 100);
+  Serial.print("Vibration_arm: ");
+  Serial.println(Vibration_arm);
+  Blynk.virtualWrite(V6, arm_val);
+
+  adc_value = analogRead(Voltage);
+  adc_voltage = (adc_value * ref_voltage) / 4095.0;
+  in_voltage = adc_voltage * (R1 + R2) / R2;
+  Serial.print("Input Voltage = ");
+  Serial.println(in_voltage, 2);
+  Blynk.virtualWrite(V7, in_voltage);
+
+  Acs_val = analogRead(CURRENT_SENSOR_PIN);
+  voltage = (Acs_val / 4095.0) * 5000.0;
+  current = voltage / ACS712_SENSITIVITY;
+  Serial.print("Current: ");
+  Serial.print(current);
+  Serial.println(" mA");
+  Blynk.virtualWrite(V8, current);
+
+  delay(500);
+}
