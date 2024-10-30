@@ -27,12 +27,6 @@
 // LED Flash PIN (GPIO 4)
 #define FLASH_LED_PIN 4
 
-const char* ssid = "Dhanu@";
-const char* password = "Dhanu@@2004";
-
-String myDeploymentID = "AKfycbyLlnctaXhRhEYNTK3rUl2k-Tq5z3Ia9JzVtEaFZqchjp5U2KLUG2JitfyxtWo2uc8";
-String myMainFolderName = "Colouss";
-
 unsigned long previousMillis = 0; 
 const int Interval = 20000;
 
